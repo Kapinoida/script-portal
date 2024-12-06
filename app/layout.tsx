@@ -33,7 +33,9 @@ export default function RootLayout({
               <Header />
               <div className="flex flex-1 overflow-hidden">
                 <Navigation />
-                {children}
+                <div className="p-4 flex flex-1 justify-center items-start overflow-y-auto">
+                  {children}
+                </div>
               </div>
             </div>
             

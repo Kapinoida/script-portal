@@ -1,0 +1,21 @@
+// app/api/fetch-data/route.js
+"use server";
+
+import { query } from "@/lib/db"; // Adjust the path if your db.js is located elsewhere
+
+export async function GET(req) {
+  try {
+    // Example: Fetch all scripts from the 'scripts' table
+    const results = await query(
+      "SELECT * FROM logs JOIN scripts ON logs.script_id = scripts.script_id ORDER BY logs.start_time DESC"
+    );
+
+    return new Response(JSON.stringify(results), { status: 200 });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return new Response(
+      JSON.stringify({ error: "Error fetching data from the database" }),
+      { status: 500 }
+    );
+  }
+}

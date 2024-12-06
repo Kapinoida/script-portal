@@ -1,4 +1,4 @@
-// app/api/fetch-data/route.js
+// app/api/fetch-scripts/route.js
 'use server'; 
 
 import { query } from '@/lib/db'; // Adjust the path if your db.js is located elsewhere

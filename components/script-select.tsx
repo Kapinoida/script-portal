@@ -9,30 +9,37 @@ import { Select,
     SelectTrigger,
     SelectValue, 
 } from './ui/select';
+import { Skeleton } from './ui/skeleton';
 
 interface Script {
-    id: number;
+    script_id: number;
     script_name: string;
     script_path: string;
     description: string;
 }
 
 interface ScriptSelectProps {
-    onScriptSelect: (scriptPath: string) => void; 
+    onScriptSelect: (scriptPath: string, key: number) => void; 
 }
 
 export default function ScriptSelect({ onScriptSelect }: ScriptSelectProps) {
     const [scripts, setScripts] = useState<Script[]>([]);
     const [selectedScriptPath, setSelectedScriptPath] = useState<string | undefined>(undefined);
+    const [selectedScriptId, setSelectedScriptId] = useState<number | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(true);
+
 
     useEffect(() => {
+        let isMounted = true;
         const fetchData = async () => {
             try {
-                const response = await fetch('/api/fetch-data');
+                const response = await fetch('/api/fetch-scripts');
                 const data = await response.json();
 
                 if (response.ok) {
-                    setScripts(data);
+                    if (isMounted) {
+                        setScripts(data);
+                    }
                 } else {
                     console.error('Error fetching data:', data.error);
                 }
@@ -42,30 +49,41 @@ export default function ScriptSelect({ onScriptSelect }: ScriptSelectProps) {
         };
 
         fetchData();
+        setIsLoading(false);
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const handleSelectChange = (value: string) => {
         setSelectedScriptPath(value); 
-        onScriptSelect(value); 
+        const key = scripts.find((script) => script.script_path === value)?.script_id;
+        if (key !== undefined) {
+            setSelectedScriptId(key);
+            onScriptSelect(value, key); 
+        }
     };
 
     return (
-        <div>
-            <Select onValueChange={handleSelectChange} value={selectedScriptPath}>
-                <SelectTrigger>
-                    <SelectValue placeholder="Select a script" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectGroup>
-                        <SelectLabel>Scripts</SelectLabel>
-                        {scripts.map((script) => (
-                            <SelectItem key={script.id} value={script.script_path}>
-                                {script.script_name} - {script.description}
-                            </SelectItem>
-                        ))}
-                    </SelectGroup>
-                </SelectContent>
-            </Select>
+        <div className='min-w-full h-[40px] rounded-full '>
+            {isLoading ? <Skeleton className="min-w-full min-h-full rounded-xl" /> : (
+                <Select onValueChange={handleSelectChange} value={selectedScriptPath} key={selectedScriptId}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a script" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>Scripts</SelectLabel>
+                            {scripts.map((script) => (
+                                <SelectItem key={script.script_id} value={script.script_path}>
+                                    {script.script_name} - {script.description}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            )}
         </div>
     );
 }
